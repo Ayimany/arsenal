@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "arsenal",
+  "version": "${version}",
+
+  "name": "Arsenal",
+  "description": "A long time ago, my friends wanted an experience to do with guns in mc, now it's time.",
+  "authors": [
+    "Ayimany"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/modid/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.ayimany.arsenal.Main"
+    ],
+    "client": [
+      "net.ayimany.arsenal.ArsenalClient"
+    ]
+  },
+  "mixins": [
+    "arsenal.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.11",
+    "fabric-api": "*",
+    "minecraft": "~1.19.3",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

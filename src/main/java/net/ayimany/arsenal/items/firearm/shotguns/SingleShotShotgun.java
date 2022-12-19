@@ -1,4 +1,4 @@
-package net.ayimany.arsenal.items.firearms;
+package net.ayimany.arsenal.items.firearm.shotguns;
 
 import net.ayimany.arsenal.items.bases.AmmoUnit;
 import net.ayimany.arsenal.items.bases.FirearmBase;
@@ -6,13 +6,15 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
-public class Shotgun extends FirearmBase {
+public class SingleShotShotgun extends FirearmBase {
 
-    public Shotgun() {
-        super(2, AmmoUnit.Context.SHOTGUN);
+    public SingleShotShotgun() {
+        super(1, AmmoUnit.Context.SHOTGUN);
         this.reloadDelayTicks = 40;
-        this.shotDelayTicks   = 10;
-        this.spreadFactor     = 8;
+        this.shotDelayTicks   = 15;
+        this.spreadFactor     = 6;
+        this.damageMultiplier = 1.5f;
+        this.shotStrength = 1.5f;
     }
 
     @Override

@@ -13,6 +13,8 @@ public abstract class AmmoUnit extends Item {
     protected float damage;
     protected float speed;
     protected   int bulletCount;
+    protected   int pierce;
+    protected float stability = 1;
 
     public AmmoUnit(String name, Context context, int damage, int speed, int bulletCount) {
         super(new FabricItemSettings());
@@ -25,8 +27,6 @@ public abstract class AmmoUnit extends Item {
 
     public enum Context {
         PISTOL,
-        SEMI,
-        FULL,
         RIFLE,
         SHOTGUN,
         ROCKET
@@ -50,6 +50,14 @@ public abstract class AmmoUnit extends Item {
 
     public int getBulletCount() {
         return bulletCount;
+    }
+
+    public int getPierce() {
+        return pierce;
+    }
+
+    public float getStability() {
+        return stability;
     }
 
     @Override

@@ -28,6 +28,7 @@ public abstract class FirearmBase extends Item  {
     protected float shotStrength = 1;
 
     protected float spreadFactor = 0;
+    protected int shotsPerAction = 1;
 
     public FirearmBase(int maxAmmo, AmmoUnit.Context context) {
         super(new FabricItemSettings()
@@ -40,10 +41,14 @@ public abstract class FirearmBase extends Item  {
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (selected && entity instanceof PlayerEntity p) displayAmmoOnHUD(p);
+        if (selected && entity instanceof PlayerEntity p) {
+            displayAmmoOnHUD(p);
+        }
 
         super.inventoryTick(stack, world, entity, slot, selected);
     }
+
+
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -52,29 +57,31 @@ public abstract class FirearmBase extends Item  {
 
         // Further code will do NO client checks.
 
-        if (canShoot())
-            shoot(world, user);
-
-        if (mustReload())
-            reload(user);
+        if (canShoot()) shoot(world, user);
+        else if (mustReload()) reload(user);
 
         return TypedActionResult.success(user.getStackInHand(hand), false);
     }
 
-    final void shoot(World world, PlayerEntity user) {
+    public final void shoot(World world, PlayerEntity user) {
         playShootingSound(user);
 
-        summonBullets(world, user);
-        lowerCurrentAmmo();
+        for (int i = 0; i < shotsPerAction; i++) {
+            summonBullets(world, user);
+            lowerCurrentAmmo();
+        }
 
+
+        if (reloadDelayTicks == 0) return;
         user.getItemCooldownManager().set(this, shotDelayTicks);
     }
 
-    protected void reload(PlayerEntity user) {
+    public void reload(PlayerEntity user) {
+        boolean foundAmmo = findAndLoadBulletStackFrom(user.getInventory());
+
+        if (!foundAmmo) return;
+
         playReloadingSound(user);
-
-        loadBulletStackFrom(user.getInventory());
-
         user.getItemCooldownManager().set(this, reloadDelayTicks);
     }
 
@@ -92,19 +99,22 @@ public abstract class FirearmBase extends Item  {
 
     }
 
-    protected void loadBulletStackFrom(Inventory inventory) {
-        if (inventory == null) return;
+    protected boolean findAndLoadBulletStackFrom(Inventory inventory) {
+        boolean state = false;
+        if (inventory == null) return state;
 
         ItemStack nextStack = getNextAdequateStack(inventory);
 
         while (currentAmmo < maxAmmo) {
-            if (nextStack ==  null) return;
+            if (nextStack ==  null) return state;
 
             loadBulletStack(nextStack);
+            state = true;
 
             nextStack = getNextAdequateStack(inventory);
         }
 
+        return state;
     }
 
     protected void loadBulletStack(ItemStack stack) {
@@ -142,6 +152,10 @@ public abstract class FirearmBase extends Item  {
         return currentAmmo <= 0;
     }
 
+    public boolean canReload() {
+        return currentAmmo < maxAmmo;
+    }
+
     protected void lowerCurrentAmmo() {
         this.currentAmmo--;
     }
@@ -150,7 +164,9 @@ public abstract class FirearmBase extends Item  {
     }
 
     protected void playReloadingSound(PlayerEntity user) {
-        SoundUtils.playSoundFromPlayer(user, SoundEvents.BLOCK_WOODEN_BUTTON_CLICK_OFF, 1, 0);
+        SoundUtils.playSoundFromPlayer(user, SoundEvents.ENTITY_FOX_SPIT, 0.5f, 0.5f);
+        SoundUtils.playSoundFromPlayer(user, SoundEvents.ENTITY_TURTLE_EGG_CRACK, 0.25f, 2f);
+        SoundUtils.playSoundFromPlayer(user, SoundEvents.ITEM_ARMOR_EQUIP_CHAIN, 1f, 0.75f);
     }
 
     private void displayAmmoOnHUD(PlayerEntity entity) {

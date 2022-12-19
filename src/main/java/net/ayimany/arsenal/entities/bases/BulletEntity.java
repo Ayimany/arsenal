@@ -71,6 +71,9 @@ public class BulletEntity extends ThrownItemEntity {
     public void loadAmmoUnitProperties(AmmoUnit unit) {
         this._damage = unit.getDamage();
         this._speed = unit.getSpeed();
+        this._pierce = unit.getPierce();
+        this._pitchMod = unit.getStability();
+        this._yawMod = unit.getStability();
     }
 
     public void loadWeaponProperties(
@@ -78,9 +81,9 @@ public class BulletEntity extends ThrownItemEntity {
     ) {
         this._damage        *= weapon.getDamageMultiplier();
         this._speed         *= weapon.getShotStrength();
-        this._breakingPower  = WEAK_BLOCK_COMMON_MAX_RESISTANCE * weapon.getShotStrength();
-        this._pitchMod       = (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * weapon.getSpreadFactor();
-        this._yawMod         = (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * weapon.getSpreadFactor();
+        this._breakingPower  = WEAK_BLOCK_COMMON_MAX_RESISTANCE + (weapon.getShotStrength() / 10);
+        this._pitchMod      *= (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * weapon.getSpreadFactor();
+        this._yawMod        *= (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * weapon.getSpreadFactor();
     }
 
     public void loadProjectileProperties(Entity shooter) {

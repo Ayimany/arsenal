@@ -4,7 +4,6 @@ import net.ayimany.arsenal.network.ArsenalNetworkHandler;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
@@ -12,16 +11,14 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.message.MessageType;
 import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
 import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Decoration;
-import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
 @SuppressWarnings("unused")
 public class ArsenalClient implements ClientModInitializer {
+
+    // BEGIN STATIC
 
     public static final KeyBinding RELOAD_BIND = KeyBindingHelper.registerKeyBinding(
             new KeyBinding(
@@ -46,6 +43,8 @@ public class ArsenalClient implements ClientModInitializer {
 
         }
     }
+
+    // BEGIN INSTANCE
 
     @Override
     public void onInitializeClient() {

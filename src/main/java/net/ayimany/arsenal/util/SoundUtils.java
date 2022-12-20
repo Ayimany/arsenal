@@ -5,6 +5,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 
+/**
+ * Utility class to play sounds. That's it.
+ **/
 public class SoundUtils {
 
     public static void playSoundFromPlayer(PlayerEntity entity, SoundEvent event, float volume, float pitch) {

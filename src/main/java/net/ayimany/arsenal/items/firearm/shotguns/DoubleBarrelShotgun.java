@@ -6,14 +6,22 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
+/**
+ * Shoots two shells at once. Strong but usage must be measured.
+ **/
 public class DoubleBarrelShotgun extends FirearmBase {
 
     public DoubleBarrelShotgun() {
-        super(4, AmmoUnit.Context.SHOTGUN);
-        this.reloadDelayTicks = 80;
-        this.shotDelayTicks   = 10;
-        this.spreadFactor     = 10;
-        this.shotsPerAction   = 2;
+        super(
+                AmmoUnit.Context.SHOTGUN,
+                10,
+                80,
+                4,
+                1f,
+                1f,
+                10,
+                2
+        );
     }
 
     @Override

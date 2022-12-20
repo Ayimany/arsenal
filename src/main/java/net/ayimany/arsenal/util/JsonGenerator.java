@@ -3,10 +3,13 @@ package net.ayimany.arsenal.util;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * Utility class to generate JSON item model files based on existent Java files.
+ **/
 public class JsonGenerator {
 
-    public static final String BASE_ITEM_DIRECTORY = "/files/projects/arsenal/src/main/java/net/ayimany/arsenal/items/";
-    public static final String BASE_MODEL_DIRECTORY = "/files/projects/arsenal/src/main/resources/assets/arsenal/models/item/";
+    public static final String BASE_ITEM_DIRECTORY = "src/main/java/net/ayimany/arsenal/items/";
+    public static final String BASE_MODEL_DIRECTORY = "src/main/resources/assets/arsenal/models/item/";
     public static final String[] INCLUDED_DIRECTORIES = {
             "ammo","firearm"
     };
@@ -77,7 +80,7 @@ public class JsonGenerator {
     }
 
 
-    // Since this is a simple tool, so some IOExceptions will not be handled.
+    // Since this is a simple tool, some IOExceptions will not be handled.
     // They shall rarely come up.
     public static void main(String[] args) throws IOException {
         ArrayList<File> files = new ArrayList<>();
@@ -97,7 +100,7 @@ public class JsonGenerator {
             if (created) System.out.println("Successfully created " + jsonFileName);
             else System.out.println("Failed to create " + jsonFileName);
 
-            String type = file.getPath().split("/")[11];
+            String type = file.getPath().split("/")[7];
 
             FileWriter writer = new FileWriter(jsonFile);
 

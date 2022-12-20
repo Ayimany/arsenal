@@ -6,13 +6,22 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
+/**
+ * Trustworthy, quick and effective shotgun type.
+ **/
 public class PumpActionShotgun extends FirearmBase {
 
     public PumpActionShotgun() {
-        super(4, AmmoUnit.Context.SHOTGUN);
-        this.reloadDelayTicks = 60;
-        this.shotDelayTicks   = 5;
-        this.spreadFactor     = 6;
+        super(
+                AmmoUnit.Context.SHOTGUN,
+                11,
+                70,
+                4,
+                1f,
+                1f,
+                7,
+                1
+        );
     }
 
     @Override

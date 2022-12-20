@@ -2,96 +2,129 @@ package net.ayimany.arsenal.items.bases;
 
 import net.ayimany.arsenal.entities.bases.BulletEntity;
 import net.ayimany.arsenal.util.SoundUtils;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Pair;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
+/**
+ * Every firearm in Arsenal inherits from this class.<p>
+ * This contains all the logic to shoot, reload and more. Overrideable if necessary,
+ *     although, few weapons will do this. <p>
+ * First part of the Arsenal equation.
+ **/
 public abstract class FirearmBase extends Item  {
-    protected AmmoUnit currentUnitType;
     protected AmmoUnit.Context context;
 
-    protected int shotDelayTicks;
-    protected int reloadDelayTicks;
+    public static final String KEY_SHOT_DELAY_TICKS   = "ShotDelay";
+    public static final String KEY_RELOAD_DELAY_TICKS = "ReloadDelay";
+    public static final String KEY_MAX_AMMO           = "MaxAmmo";
+    public static final String KEY_CURRENT_AMMO       = "CurrentAmmo";
+    public static final String KEY_SHOTS_PER_ACTION   = "ShotsPerTriggerAction";
+    public static final String KEY_DAMAGE_MULTIPLIER  = "DamageMultiplier";
+    public static final String KEY_SHOT_STRENGTH      = "ShotStrength";
+    public static final String KEY_SPREAD_FACTOR      = "SpreadFactor";
+    public static final String KEY_LOADED_AMMO_NAME   = "LoadedAmmoName";
 
-    protected int maxAmmo;
-    protected int currentAmmo;
+    protected final   int SHOT_DELAY_TICKS;
+    protected final   int RELOAD_DELAY_TICKS;
+    protected final   int MAX_AMMO;
+    protected final float DAMAGE_MULTIPLIER;
+    protected final float SHOT_STRENGTH;
+    protected final float SPREAD_FACTOR;
+    protected final   int SHOTS_PER_ACTION;
 
-    protected float damageMultiplier = 1;
-    protected float shotStrength = 1;
+    public FirearmBase(AmmoUnit.Context context, int SHOT_DELAY_TICKS, int RELOAD_DELAY_TICKS, int MAX_AMMO, float DAMAGE_MULTIPLIER, float SHOT_STRENGTH, float SPREAD_FACTOR, int SHOTS_PER_ACTION) {
+        super(new Item.Settings().maxDamage((int)(3600 * MAX_AMMO * (SHOT_STRENGTH / 2f))));
 
-    protected float spreadFactor = 0;
-    protected int shotsPerAction = 1;
-
-    public FirearmBase(int maxAmmo, AmmoUnit.Context context) {
-        super(new FabricItemSettings()
-                .maxDamage(maxAmmo)
-        );
-
-        this.maxAmmo = maxAmmo;
         this.context = context;
+
+        this.SHOT_DELAY_TICKS = SHOT_DELAY_TICKS;
+        this.RELOAD_DELAY_TICKS = RELOAD_DELAY_TICKS;
+        this.MAX_AMMO = MAX_AMMO;
+        this.DAMAGE_MULTIPLIER = DAMAGE_MULTIPLIER;
+        this.SHOT_STRENGTH = SHOT_STRENGTH;
+        this.SPREAD_FACTOR = SPREAD_FACTOR;
+        this.SHOTS_PER_ACTION = SHOTS_PER_ACTION;
+
+    }
+
+    public void loadWeaponNbt(NbtCompound nbt) {
+
+        nbt.putInt(KEY_SHOT_DELAY_TICKS, SHOT_DELAY_TICKS);
+        nbt.putInt(KEY_RELOAD_DELAY_TICKS, RELOAD_DELAY_TICKS);
+        nbt.putInt(KEY_MAX_AMMO, MAX_AMMO);
+        nbt.putInt(KEY_SHOTS_PER_ACTION, SHOTS_PER_ACTION);
+
+        nbt.putFloat(KEY_DAMAGE_MULTIPLIER, DAMAGE_MULTIPLIER);
+        nbt.putFloat(KEY_SHOT_STRENGTH, SHOT_STRENGTH);
+        nbt.putFloat(KEY_SPREAD_FACTOR, SPREAD_FACTOR);
+
+        nbt.putString(KEY_LOADED_AMMO_NAME, "None");
+
     }
 
     @Override
     public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
         if (selected && entity instanceof PlayerEntity p) {
-            displayAmmoOnHUD(p);
+            displayAmmoOnHUD(stack, p);
         }
 
         super.inventoryTick(stack, world, entity, slot, selected);
     }
 
-
-
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 
+        // Further code will do NO client checks.
         if (world.isClient) return TypedActionResult.pass(user.getStackInHand(hand));
 
-        // Further code will do NO client checks.
+        ItemStack weapon = user.getStackInHand(hand);
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
 
-        if (canShoot()) shoot(world, user);
-        else if (mustReload()) reload(user);
+        if (nbt == null) loadWeaponNbt(weapon.getOrCreateSubNbt("Arsenal"));
+
+        if (canShoot(weapon)) shoot(weapon, world, user);
+        else if (mustReload(weapon)) reload(weapon, user);
 
         return TypedActionResult.success(user.getStackInHand(hand), false);
     }
 
-    public final void shoot(World world, PlayerEntity user) {
+    public final void shoot(ItemStack stack, World world, PlayerEntity user) {
+        NbtCompound nbt = stack.getSubNbt("Arsenal");
+        if (nbt == null) return;
+
         playShootingSound(user);
 
-        for (int i = 0; i < shotsPerAction; i++) {
-            summonBullets(world, user);
-            lowerCurrentAmmo();
+        for (int i = 0; i < nbt.getInt(KEY_SHOTS_PER_ACTION); i++) {
+            summonBullets(stack, world, user);
+            lowerCurrentAmmo(stack);
         }
 
+        if (nbt.getInt(KEY_CURRENT_AMMO) == 0) nbt.putString(KEY_LOADED_AMMO_NAME, "None");
 
-        if (reloadDelayTicks == 0) return;
-        user.getItemCooldownManager().set(this, shotDelayTicks);
+        stack.damage(1, user, (entity -> {}));
+        user.getItemCooldownManager().set(this, nbt.getInt(KEY_SHOT_DELAY_TICKS));
     }
 
-    public void reload(PlayerEntity user) {
-        boolean foundAmmo = findAndLoadBulletStackFrom(user.getInventory());
+    protected void summonBullets(ItemStack weapon, World world, PlayerEntity user) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return;
 
-        if (!foundAmmo) return;
+        AmmoUnit currentUnit = AmmoUnit.getType(nbt.getString(KEY_LOADED_AMMO_NAME));
 
-        playReloadingSound(user);
-        user.getItemCooldownManager().set(this, reloadDelayTicks);
-    }
+        for (int i = 0; i < currentUnit.getBulletCount(); i++) {
+            BulletEntity bullet = currentUnit.produceBulletFor(user, world);
 
-
-    protected void summonBullets(World world, PlayerEntity user) {
-
-        for (int i = 0; i < currentUnitType.getBulletCount(); i++) {
-            BulletEntity bullet = currentUnitType.produceBulletFor(user, world);
-
-            bullet.loadWeaponProperties(this);
+            bullet.loadWeaponProperties(weapon);
             bullet.loadProjectileProperties(user);
 
             world.spawnEntity(bullet);
@@ -99,65 +132,101 @@ public abstract class FirearmBase extends Item  {
 
     }
 
-    protected boolean findAndLoadBulletStackFrom(Inventory inventory) {
-        boolean state = false;
-        if (inventory == null) return state;
+    protected boolean canShoot(ItemStack weapon) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return false;
 
-        ItemStack nextStack = getNextAdequateStack(inventory);
+        return nbt.getInt(KEY_CURRENT_AMMO) > 0 && !(nbt.getString(KEY_LOADED_AMMO_NAME).equals("None"));
+    }
+
+    public void reload(ItemStack weapon, PlayerEntity user) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return;
+
+        boolean foundAmmo = findAndLoadBulletStackFrom(weapon, user.getInventory());
+
+        if (!foundAmmo) return;
+
+        playReloadingSound(user);
+        user.getItemCooldownManager().set(this, nbt.getInt(KEY_RELOAD_DELAY_TICKS));
+    }
+
+    protected boolean findAndLoadBulletStackFrom(ItemStack weapon, Inventory inventory) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return false;
+
+        boolean state = false;
+
+        Pair<AmmoUnit, ItemStack> nextStack = getNextAdequateStack(weapon, inventory);
+        int currentAmmo = nbt.getInt(KEY_CURRENT_AMMO);
+        int maxAmmo = nbt.getInt(KEY_MAX_AMMO);
 
         while (currentAmmo < maxAmmo) {
-            if (nextStack ==  null) return state;
+            if (nextStack ==  null) break;
 
-            loadBulletStack(nextStack);
+            loadBulletStack(weapon, nextStack.getLeft(), nextStack.getRight());
             state = true;
 
-            nextStack = getNextAdequateStack(inventory);
+            currentAmmo = nbt.getInt(KEY_CURRENT_AMMO);
+            nextStack = getNextAdequateStack(weapon, inventory);
         }
 
         return state;
     }
 
-    protected void loadBulletStack(ItemStack stack) {
+    protected void loadBulletStack(ItemStack weapon, AmmoUnit unit, ItemStack stack) {
         if (stack == null) return;
+
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return;
+
+        int currentAmmo = nbt.getInt(KEY_CURRENT_AMMO);
+        int maxAmmo = nbt.getInt(KEY_MAX_AMMO);
 
         int ammoToDecrease = maxAmmo - currentAmmo;
         int ammoToRefill = Math.min(stack.getCount(), ammoToDecrease);
 
         stack.decrement(ammoToRefill);
-        currentAmmo += ammoToRefill;
-
+        nbt.putInt(KEY_CURRENT_AMMO, currentAmmo + ammoToRefill);
+        nbt.putString(KEY_LOADED_AMMO_NAME, unit.name);
     }
 
-    protected ItemStack getNextAdequateStack(Inventory inventory) {
+    protected Pair<AmmoUnit, ItemStack> getNextAdequateStack(ItemStack weapon, Inventory inventory) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return null;
 
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack current = inventory.getStack(i);
 
             if (!(current.getItem() instanceof AmmoUnit unit) || unit.context != this.context) continue;
 
-            currentUnitType = unit;
-
-            return current;
+            if (unit.name.equals(nbt.getString(KEY_LOADED_AMMO_NAME)) || nbt.getInt(KEY_CURRENT_AMMO) == 0)
+                return new Pair<>(unit, current);
         }
 
         return null;
 
     }
 
-    protected boolean canShoot() {
-        return currentAmmo > 0 && currentUnitType != null;
+    protected boolean mustReload(ItemStack weapon) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return false;
+
+        return nbt.getInt(KEY_CURRENT_AMMO) <= 0;
     }
 
-    protected boolean mustReload() {
-        return currentAmmo <= 0;
+    public boolean canReload(ItemStack weapon) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return false;
+
+        return nbt.getInt(KEY_CURRENT_AMMO) < nbt.getInt(KEY_MAX_AMMO);
     }
 
-    public boolean canReload() {
-        return currentAmmo < maxAmmo;
-    }
+    protected void lowerCurrentAmmo(ItemStack weapon) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
 
-    protected void lowerCurrentAmmo() {
-        this.currentAmmo--;
+        if (nbt != null)
+            nbt.putInt(KEY_CURRENT_AMMO, nbt.getInt(KEY_CURRENT_AMMO) - 1);
     }
 
     protected void playShootingSound(PlayerEntity user) {
@@ -169,22 +238,14 @@ public abstract class FirearmBase extends Item  {
         SoundUtils.playSoundFromPlayer(user, SoundEvents.ITEM_ARMOR_EQUIP_CHAIN, 1f, 0.75f);
     }
 
-    private void displayAmmoOnHUD(PlayerEntity entity) {
+    private void displayAmmoOnHUD(ItemStack stack, PlayerEntity entity) {
+        NbtCompound nbt = stack.getSubNbt("Arsenal");
+        if (nbt == null) return;
+
         entity.sendMessage(
-                Text.of(currentUnitType + " | " + currentAmmo + " / " + maxAmmo),
+                Text.of(nbt.getString(KEY_LOADED_AMMO_NAME)+ ": " + nbt.getInt(KEY_CURRENT_AMMO) + " / " + nbt.getInt(KEY_MAX_AMMO)),
                 true
         );
     }
 
-    public float getDamageMultiplier() {
-        return damageMultiplier;
-    }
-
-    public float getShotStrength() {
-        return shotStrength;
-    }
-
-    public float getSpreadFactor() {
-        return spreadFactor;
-    }
 }

@@ -1,6 +1,6 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "arsenal:item/lever_action_shotgun"
+        "layer0": "arsenal:item/bolt_action_shotgun"
     }
 }

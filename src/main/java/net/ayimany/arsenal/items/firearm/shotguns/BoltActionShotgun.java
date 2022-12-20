@@ -6,14 +6,22 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
-public class LeverActionShotgun extends FirearmBase {
+/**
+ * Slow but strong shotgun, slightly stronger than other shotguns
+**/
+public class BoltActionShotgun extends FirearmBase {
 
-    public LeverActionShotgun() {
-        super(6, AmmoUnit.Context.SHOTGUN);
-        this.reloadDelayTicks = 50;
-        this.shotDelayTicks   = 10;
-        this.spreadFactor     = 4;
-        this.shotStrength     = 0.8f;
+    public BoltActionShotgun() {
+        super(
+                AmmoUnit.Context.SHOTGUN,
+                20,
+                60,
+                5,
+                1.15f,
+                1.1f,
+                5,
+                1
+        );
     }
 
     @Override

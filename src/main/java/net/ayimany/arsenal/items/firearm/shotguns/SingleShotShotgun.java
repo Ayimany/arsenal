@@ -6,15 +6,22 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
+/**
+ * Only has capacity for a single bullet. More powerful than other shotgun types
+ **/
 public class SingleShotShotgun extends FirearmBase {
 
     public SingleShotShotgun() {
-        super(1, AmmoUnit.Context.SHOTGUN);
-        this.reloadDelayTicks = 40;
-        this.shotDelayTicks   = 15;
-        this.spreadFactor     = 6;
-        this.damageMultiplier = 1.5f;
-        this.shotStrength = 1.5f;
+        super(
+                AmmoUnit.Context.SHOTGUN,
+                30,
+                60,
+                1,
+                1.5f,
+                1.5f,
+                8,
+                1
+        );
     }
 
     @Override

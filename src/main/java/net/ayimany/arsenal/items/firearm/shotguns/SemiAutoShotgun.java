@@ -6,15 +6,23 @@ import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
+/**
+ * Really quick shotgun type. Weaker than other shotgun types. <p>\
+ * It's a game. Balancing is needed.
+ **/
 public class SemiAutoShotgun extends FirearmBase {
 
     public SemiAutoShotgun() {
-        super(12, AmmoUnit.Context.SHOTGUN);
-        this.reloadDelayTicks = 50;
-        this.shotDelayTicks   = 2;
-        this.spreadFactor     = 8;
-        this.damageMultiplier = 0.5f;
-        this.shotStrength     = 0.8f;
+        super(
+                AmmoUnit.Context.SHOTGUN,
+                5,
+                75,
+                12,
+                0.75f,
+                0.75f,
+                14,
+                1
+        );
     }
 
     @Override

@@ -1,7 +1,7 @@
 package net.ayimany.arsenal.entities.bases;
 
-import net.ayimany.arsenal.ArsenalRegistry;
 import net.ayimany.arsenal.items.bases.AmmoUnit;
+import net.ayimany.arsenal.items.bases.FirearmBase;
 import net.ayimany.arsenal.util.SoundUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.TntBlock;
@@ -23,30 +23,42 @@ import net.minecraft.world.World;
 
 import static net.ayimany.arsenal.items.bases.FirearmBase.*;
 
-/**
- * The entity summoned by every single weapon in Arsenal. <p>
- * It's Bullet -> Gun -> Projectile build allows inclusion of all necessary parts to produce a unique projectile. <p>
- * Third and last part of the Arsenal equation
-**/
-public class BulletEntity extends ThrownItemEntity {
+public abstract class BulletEntity extends ThrownItemEntity {
     public static final float COMMON_WEAK_BLOCK_RESISTANCE = 0.4f;
-    float _damage;
-    float _speed;
-      int _pierce;
-    float _yawMod;
-    float _pitchMod;
 
-    public BulletEntity(EntityType<? extends ThrownItemEntity> entityType, World world) {
+    protected float _damage;
+    protected float _speed;
+    protected float _pierce;
+    protected float _yawDispersion;
+    protected float _pitchDispersion;
+
+    public BulletEntity(EntityType<? extends BulletEntity> entityType, World world) {
         super(entityType, world);
     }
 
-    @SuppressWarnings("unused")
-    public BulletEntity(double d, double e, double f, World world) {
-        super(ArsenalRegistry.BULLET_ENTITY_TYPE, d, e, f, world);
+    public BulletEntity(EntityType<? extends BulletEntity> entityType, LivingEntity owner, World world) {
+        super(entityType, owner, world);
     }
 
-    public BulletEntity(LivingEntity owner, World world) {
-        super(ArsenalRegistry.BULLET_ENTITY_TYPE, owner, world);
+    public void loadAmmoUnitProperties(AmmoUnit unit) {
+        this._damage = unit.getDamage();
+        this._speed  = unit.getSpeed();
+        this._pierce = unit.getPierce();
+    }
+
+    public void loadWeaponProperties(FirearmBase base, ItemStack weapon) {
+        NbtCompound nbt = weapon.getSubNbt("Arsenal");
+        if (nbt == null) return;
+
+        this._damage        *= nbt.getFloat(KEY_DAMAGE_MULTIPLIER);
+    }
+
+    public void loadProjectileProperties(Entity shooter) {
+        this.setVelocity(shooter,
+                shooter.getPitch() + _yawDispersion,
+                shooter.getYaw() + _pitchDispersion,
+                0.0f, _speed, 0.0f
+        );
     }
 
     @Override
@@ -76,32 +88,6 @@ public class BulletEntity extends ThrownItemEntity {
 
         //+ Required
         super.onBlockHit(result);
-    }
-
-    public void loadAmmoUnitProperties(AmmoUnit unit) {
-        this._damage        = unit.getDamage();
-        this._speed         = unit.getSpeed();
-        this._pierce        = unit.getPierce();
-        this._pitchMod      = unit.getStability();
-        this._yawMod        = unit.getStability();
-    }
-
-    public void loadWeaponProperties(ItemStack weapon) {
-        NbtCompound nbt = weapon.getSubNbt("Arsenal");
-        if (nbt == null) return;
-
-        this._damage        *= nbt.getFloat(KEY_DAMAGE_MULTIPLIER);
-        this._speed         *= nbt.getFloat(KEY_SHOT_STRENGTH);
-        this._pitchMod      *= (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * nbt.getFloat(KEY_SPREAD_FACTOR);
-        this._yawMod        *= (this.random.nextFloat() * (random.nextBoolean() ? -1 : 1)) * nbt.getFloat(KEY_SPREAD_FACTOR);
-    }
-
-    public void loadProjectileProperties(Entity shooter) {
-        this.setVelocity(shooter,
-                shooter.getPitch() + _pitchMod,
-                shooter.getYaw() + _yawMod,
-                0.0f, _speed, 0.0f
-        );
     }
 
     private void destroyBlockOnCollision(BlockHitResult result) {

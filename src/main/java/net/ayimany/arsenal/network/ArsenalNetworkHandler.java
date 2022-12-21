@@ -36,10 +36,12 @@ public class ArsenalNetworkHandler {
      * Reference {@link ArsenalNetworkHandler#KEY_HANDLER} to see how each byte value is treated.
      * **/
     private static void receiveKeystroke(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        ItemStack stack = player.getMainHandStack();
-        Item item = stack.getItem();
+        if (buf.readByte() == 1) {
+            ItemStack stack = player.getMainHandStack();
+            Item item = stack.getItem();
 
-        if (!(item instanceof FirearmBase firearm)) return;
-        if (firearm.canReload(stack) && !player.getItemCooldownManager().isCoolingDown(firearm)) firearm.reload(stack, player);
+            if (!(item instanceof FirearmBase firearm)) return;
+            if (FirearmBase.canReload(stack) && FirearmBase.isAvailable(firearm, player)) firearm.reload(stack, player);
+        }
     }
 }

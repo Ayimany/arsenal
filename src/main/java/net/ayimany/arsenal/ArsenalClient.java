@@ -18,8 +18,6 @@ import org.lwjgl.glfw.GLFW;
 @SuppressWarnings("unused")
 public class ArsenalClient implements ClientModInitializer {
 
-    // BEGIN STATIC
-
     public static final KeyBinding RELOAD_BIND = KeyBindingHelper.registerKeyBinding(
             new KeyBinding(
                     "key.arsenal.reload",
@@ -44,14 +42,12 @@ public class ArsenalClient implements ClientModInitializer {
         }
     }
 
-    // BEGIN INSTANCE
-
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register((ArsenalClient::onEndTick));
 
         EntityRendererRegistry.register(
-                ArsenalRegistry.BULLET_ENTITY_TYPE,
+                ArsenalRegistry.SHOTGUN_PELLET,
                 FlyingItemEntityRenderer::new
         );
     }

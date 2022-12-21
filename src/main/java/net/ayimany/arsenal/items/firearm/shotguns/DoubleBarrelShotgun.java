@@ -1,34 +1,25 @@
 package net.ayimany.arsenal.items.firearm.shotguns;
 
-import net.ayimany.arsenal.items.bases.AmmoUnit;
-import net.ayimany.arsenal.items.bases.FirearmBase;
-import net.ayimany.arsenal.util.SoundUtils;
+import net.ayimany.arsenal.util.DispersionMethods;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.nbt.NbtCompound;
 
-/**
- * Shoots two shells at once. Strong but usage must be measured.
- **/
-public class DoubleBarrelShotgun extends FirearmBase {
+public class DoubleBarrelShotgun extends Shotgun {
 
     public DoubleBarrelShotgun() {
         super(
-                AmmoUnit.Context.SHOTGUN,
-                10,
+                DispersionMethods.NEGATIVE_GAUSSIAN,
+                20,
                 80,
-                4,
+                2,
                 1f,
                 1f,
-                10,
-                2
+                7f
         );
     }
 
     @Override
-    protected void playShootingSound(PlayerEntity user) {
-        SoundUtils.playSoundFromPlayer(user, SoundEvents.ENTITY_IRON_GOLEM_DAMAGE, 0.25f, 0f);
-        SoundUtils.playSoundFromPlayer(user, SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST_FAR, 1f, 0.f);
-        SoundUtils.playSoundFromPlayer(user, SoundEvents.ENTITY_GENERIC_EXPLODE, 0.5f, 2f);
-        SoundUtils.playSoundFromPlayer(user, SoundEvents.BLOCK_CHAIN_PLACE, 1.2f, 2f);
+    protected void applyShotCooldown(NbtCompound nbt, PlayerEntity user) {
+        if (nbt.getInt(KEY_CURRENT_AMMO) % 2 == 0) super.applyShotCooldown(nbt, user);
     }
 }

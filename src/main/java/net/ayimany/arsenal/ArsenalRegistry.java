@@ -1,6 +1,7 @@
 package net.ayimany.arsenal;
 
 import net.ayimany.arsenal.entities.bases.BulletEntity;
+import net.ayimany.arsenal.entities.bullets.ShotgunPellet;
 import net.ayimany.arsenal.items.ammo.shotguns.Birdshot;
 import net.ayimany.arsenal.items.ammo.shotguns.Buckshot;
 import net.ayimany.arsenal.items.ammo.shotguns.Slugger;
@@ -24,12 +25,12 @@ import net.minecraft.util.Identifier;
 public class ArsenalRegistry {
     public static final String MOD_ID = "arsenal";
 
-    public static final EntityType<BulletEntity> BULLET_ENTITY_TYPE = Registry.register(
+    public static final EntityType<ShotgunPellet> SHOTGUN_PELLET = Registry.register(
             Registries.ENTITY_TYPE,
 
-            new Identifier(MOD_ID, "pistol_bullet"),
+            new Identifier(MOD_ID, "shotgun_pellet"),
 
-            FabricEntityTypeBuilder.<BulletEntity> create(SpawnGroup.MISC, BulletEntity::new)
+            FabricEntityTypeBuilder.<ShotgunPellet> create(SpawnGroup.MISC, ShotgunPellet::new)
                     .dimensions(EntityDimensions.fixed(0.25F, 0.25F))
                     .trackRangeBlocks(4).trackedUpdateRate(10)
                     .build()

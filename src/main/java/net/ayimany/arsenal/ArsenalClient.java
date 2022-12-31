@@ -47,9 +47,10 @@ public class ArsenalClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register((ArsenalClient::onEndTick));
 
         EntityRendererRegistry.register(
-                ArsenalRegistry.SHOTGUN_PELLET,
+                ArsenalRegistry.BULLET_ENTITY,
                 FlyingItemEntityRenderer::new
         );
+
     }
 
 }

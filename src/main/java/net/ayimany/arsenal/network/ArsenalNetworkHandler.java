@@ -1,6 +1,7 @@
 package net.ayimany.arsenal.network;
 
-import net.ayimany.arsenal.items.bases.FirearmBase;
+import net.ayimany.arsenal.item.FirearmItem;
+import net.ayimany.arsenal.itemstack.FirearmStack;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
@@ -40,8 +41,11 @@ public class ArsenalNetworkHandler {
             ItemStack stack = player.getMainHandStack();
             Item item = stack.getItem();
 
-            if (!(item instanceof FirearmBase firearm)) return;
-            if (FirearmBase.canReload(stack) && FirearmBase.isAvailable(firearm, player)) firearm.reload(stack, player);
+            if (!(item instanceof FirearmItem firearmItem)) return;
+
+            FirearmStack firearm = new FirearmStack(firearmItem, stack);
+
+            if (firearm.canReload() && firearm.canBeUsed()) firearmItem.reload(firearm, player);
         }
     }
 }
